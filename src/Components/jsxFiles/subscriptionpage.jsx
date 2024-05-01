@@ -6,8 +6,8 @@ import { useWalletContext } from '../contexts/Wallet';
 import { useState } from 'react';
 import { useEffect } from 'react';
 const SubscriptionPage = () => {
-  const { address, getUserBalance, createTransaction } = useWalletContext()
-  const [balance, setBalance] = useState(null)
+  const { isConnected, address, getUserBalance, createTransaction } = useWalletContext()
+  const [balance, setBalance] = useState(0)
 
   useEffect(() => {
     if (address) {
@@ -26,8 +26,8 @@ const SubscriptionPage = () => {
     { title: 'Plan 5', description: '8 Month(s)', price: 0.9 },
     { title: 'Plan 6', description: '12 Month(s)', price: 1.2 }
   ];
-  const handlesubscribe = (amount) => {
-    createTransaction(amount)
+  const handlesubscribe = (id, amount) => {
+    createTransaction(id, amount)
       .then(() => navigate("/subscribed"))
       .catch((err) => console.log(err))
   }
@@ -36,7 +36,7 @@ const SubscriptionPage = () => {
       <Header />
       <div className="subscription-plans-page">
 
-        {address && balance ? (
+        {isConnected ? (
           <div>
             <p>Address: {address}</p>
             <p>Balance: {balance} ETH</p>
@@ -49,7 +49,7 @@ const SubscriptionPage = () => {
               <h2>{plan.title}</h2>
               <p>{plan.description}</p>
               <p>{plan.price} ETH</p>
-              <button onClick={() => handlesubscribe(plan.price)} className="subscribe-button">Subscribe</button>
+              <button onClick={() => handlesubscribe(index, plan.price)} className="subscribe-button">Subscribe</button>
             </div>
           ))}
         </div>

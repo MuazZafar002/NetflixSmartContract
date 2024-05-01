@@ -15,8 +15,10 @@ const WalletProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const [account, setAccount] = useState(null);
     const [address, setAddress] = useState(null);
+    const [isConnected, setIsConnected] = useState(false);
 
     const connectWalletHandler = () => {
+        setIsConnected(false)
         if (window.ethereum) {
             provider.send("eth_requestAccounts", [])
                 .then(async () => accountHandler(await provider.getSigner()))
@@ -30,6 +32,7 @@ const WalletProvider = ({ children }) => {
         const walletAddress = await walletAccount.getAddress();
         setAddress(walletAddress);
         setAccount(walletAccount);
+        setIsConnected(true)
     }
 
     const getUserBalance = async (userAddress) => ethers.formatEther(
@@ -44,18 +47,23 @@ const WalletProvider = ({ children }) => {
         )
     }
 
-    const createTransaction = async (amount) => {
+    const createTransaction = async (id, amount) => {
         const balance = await getUserBalance(address)
 
-        const contract = getContract()
-        const valueToSend = ethers.parseUnits(amount.toString(), 'ether');
-        const methodName = 'sendEther';
+        if (amount <= balance) {
+            const contract = getContract()
+            const valueToSend = ethers.parseUnits(amount.toString(), 'ether');
+            const methodName = 'subscribe';
 
-        const tx = await contract.connect(account)[methodName](valueToSend, {
-            value: valueToSend,
-        })
-        await tx.wait()
-        console.log(" New Transaction: ", tx)
+            const tx = await contract.connect(account)[methodName](id, {
+                value: valueToSend,
+            })
+            await tx.wait()
+            console.log(" New Transaction: ", tx)
+        } else {
+            alert("Insufficient balance for transaction")
+            throw new Error("Insufficient balance for transaction")
+        }
     }
 
     useEffect(() => {
@@ -71,7 +79,7 @@ const WalletProvider = ({ children }) => {
     }, [])
 
     return (
-        <WalletContext.Provider value={{ account, address, error, getUserBalance, createTransaction }}>
+        <WalletContext.Provider value={{ isConnected, account, address, error, getUserBalance, createTransaction }}>
             {children}
         </WalletContext.Provider>
     )
